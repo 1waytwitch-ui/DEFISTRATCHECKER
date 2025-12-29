@@ -26,15 +26,32 @@ html, body, [class*="css"] {
     color: #0f172a;
 }
 
-/* ----- Gradient Title ----- */
-.gradient-title {
-    font-size: 2.6rem;
+/* ----- DeFi Banner ----- */
+.deFi-banner {
+    background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
+    padding: 25px 30px;
+    border-radius: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0px 4px 18px rgba(0,0,0,0.45);
+    margin-bottom: 30px;
+}
+
+.deFi-banner h1 {
+    margin: 0;
+    font-size: 2.1rem;
     font-weight: 800;
-    background: linear-gradient(90deg, #2563eb, #7c3aed);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
     letter-spacing: 1px;
-    margin-bottom: 0.2em;
+}
+
+.deFi-banner span {
+    display: block;
+    font-size: 0.9rem;
+    opacity: 0.75;
+    margin-top: 4px;
 }
 
 /* ----- Cards ----- */
@@ -63,7 +80,7 @@ div[role="radiogroup"] {
     border: 1px solid #e5e7eb;
 }
 
-/* ----- Buttons (KEEP GOLD GRADIENT) ----- */
+/* ----- Buttons (Gold CTA) ----- */
 .stButton button {
     background: linear-gradient(135deg, #facc15, #f59e0b);
     color: #000000;
@@ -111,6 +128,19 @@ tbody tr td {
 }
 
 </style>
+""", unsafe_allow_html=True)
+
+# =======================
+# BANNER
+# =======================
+
+st.markdown("""
+<div class="deFi-banner">
+    <div>
+        <h1>LP STRATEGIES</h1>
+        <span>DeFi Wallet Backtest • SAFE / MID / DEGEN</span>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
 # =======================
@@ -207,9 +237,6 @@ def detect_actions(strategy, current):
 # =======================
 # UI
 # =======================
-
-st.markdown('<div class="gradient-title">LP STRATEGIES • DeFi Strategy Analyzer</div>', unsafe_allow_html=True)
-st.caption("Lecture seule • SAFE / MID / DEGEN")
 
 left, right = st.columns([1, 2])
 
