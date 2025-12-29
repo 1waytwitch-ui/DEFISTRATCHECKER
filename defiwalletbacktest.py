@@ -289,7 +289,7 @@ left, right = st.columns([1,2])
 
 with left:
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("Saisie manuelle des montants du wallet ($)")
+    st.subheader("Valeurs du wallet ($)")
     portfolio = {}
     for asset in ASSETS:
         portfolio[asset] = st.number_input(asset.upper(), min_value=0.0, value=0.0, step=100.0, format="%.2f")
