@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import datetime
 import yfinance as yf
-import math
 
 # =======================
 # CONFIG
