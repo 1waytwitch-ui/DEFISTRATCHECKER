@@ -1,16 +1,24 @@
 import streamlit as st
+import requests
+import numpy as np
+import datetime
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.express as px
+import yfinance as yf
+import math
 
 # =======================
-# CONFIG UI
+# CONFIG
 # =======================
 
 st.set_page_config(
-    page_title="DeFi wallet backtest",
+    page_title="DEFI WALLET BACKTEST",
     layout="wide"
 )
 
 # =======================
-# CUSTOM CSS (UI ONLY)
+# GLOBAL STYLES
 # =======================
 
 st.markdown("""
@@ -22,39 +30,34 @@ html, body, [class*="css"] {
 }
 
 .stApp {
-    background-color: #ffffff;
-    color: #0f172a;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
 }
 
-/* ----- DeFi Banner ----- */
-.deFi-banner {
-    background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
-    padding: 25px 30px;
-    border-radius: 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid rgba(255,255,255,0.12);
-    box-shadow: 0px 4px 18px rgba(0,0,0,0.45);
-    margin-bottom: 30px;
+h1, h2, h3, h4 {
+    color: #0f172a !important;
 }
 
-.deFi-banner h1 {
-    margin: 0;
-    font-size: 2.1rem;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: 1px;
+/* Inputs */
+.stTextInput input, .stNumberInput input {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 10px;
 }
 
-.deFi-banner span {
-    display: block;
-    font-size: 0.9rem;
-    opacity: 0.75;
-    margin-top: 4px;
+/* Buttons (CTA GOLD) */
+.stButton button {
+    background: linear-gradient(135deg, #facc15, #f59e0b) !important;
+    color: #000000 !important;
+    font-weight: 700;
+    border-radius: 14px;
+    padding: 0.6em 1.6em;
+    border: none;
+    box-shadow: 0px 6px 20px rgba(250,204,21,0.35);
 }
 
-/* ----- Cards ----- */
+/* Cards */
 .card {
     background: #ffffff;
     border-radius: 18px;
@@ -64,254 +67,237 @@ html, body, [class*="css"] {
     border: 1px solid #e5e7eb;
 }
 
-/* ----- Inputs ----- */
-.stTextInput input {
-    background-color: #ffffff;
-    color: #0f172a;
-    border-radius: 10px;
-    border: 1px solid #d1d5db;
-}
-
-/* ----- Radio buttons ----- */
-div[role="radiogroup"] {
-    background: #f8fafc;
-    padding: 12px;
-    border-radius: 14px;
-    border: 1px solid #e5e7eb;
-}
-
-/* ----- Buttons (Gold CTA) ----- */
-.stButton button {
-    background: linear-gradient(135deg, #facc15, #f59e0b);
-    color: #000000;
-    font-weight: 700;
-    border-radius: 14px;
-    padding: 0.6em 1.6em;
-    border: none;
-    box-shadow: 0px 6px 20px rgba(250,204,21,0.35);
-    transition: all 0.2s ease;
-}
-
-.stButton button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0px 10px 30px rgba(250,204,21,0.5);
-}
-
-/* ----- Alerts ----- */
-.stAlert {
-    border-radius: 14px;
-}
-
-/* ----- Table ----- */
+/* Tables */
 table {
     background-color: #ffffff !important;
     border-radius: 14px;
     overflow: hidden;
     border: 1px solid #e5e7eb;
 }
-
 thead tr th {
     background-color: #f1f5f9 !important;
     color: #0f172a !important;
 }
-
 tbody tr td {
     color: #0f172a !important;
-}
-
-/* ----- Footer ----- */
-.footer {
-    text-align: center;
-    opacity: 0.5;
-    margin-top: 30px;
-    font-size: 0.85rem;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # =======================
-# BANNER
+# HEADER BANNER
 # =======================
 
 st.markdown("""
+<style>
+.deFi-banner {
+    background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
+    padding: 25px 30px;
+    border-radius: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0px 4px 18px rgba(0,0,0,0.45);
+    margin-bottom: 25px;
+}
+.deFi-title-text {
+    font-size: 36px;
+    font-weight: 700;
+    color: white !important;
+}
+.deFi-buttons a {
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 12px;
+    margin-left: 8px;
+}
+.krystal-btn { background-color: #06b6d4; }
+.plusvalue-btn { background-color: #10b981; }
+.telegram-btn { background-color: #6c5ce7; }
+.formation-btn { background-color: #f59e0b; }
+</style>
+
 <div class="deFi-banner">
-    <div>
-        <h1>LP STRATEGIES</h1>
-        <span>DeFi Wallet Backtest • SAFE / MID / DEGEN</span>
+    <div class="deFi-title-text">DEFI WALLET BACKTEST</div>
+    <div class="deFi-buttons">
+        <a href="https://defi.krystal.app/referral?r=3JwR8YRQCRJT" target="_blank" class="krystal-btn">Krystal</a>
+        <a href="https://plusvalueimposable.streamlit.app/" target="_blank" class="plusvalue-btn">Plus-value</a>
+        <a href="https://t.me/Pigeonchanceux" target="_blank" class="telegram-btn">Telegram</a>
+        <a href="https://shorturl.at/X3sYt" target="_blank" class="formation-btn">Formation</a>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 # =======================
-# STRATEGIES
+# DISCLAIMER
+# =======================
+
+if "show_disclaimer" not in st.session_state:
+    st.session_state.show_disclaimer = True
+
+if st.session_state.show_disclaimer:
+    st.markdown("""
+    <div style="
+        background-color: #fff3cd;
+        border-left: 6px solid #ffca2c;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: #000;
+        margin-bottom: 25px;
+        font-size: 15px;
+    ">
+    <b>⚠️ DISCLAIMER IMPORTANT</b><br><br>
+    Cet outil est réservé aux membres de la Team Élite KBOUR Crypto.
+    Il ne constitue en aucun cas un conseil en investissement.
+    </div>
+    """, unsafe_allow_html=True)
+
+# =======================
+# AUTHENTIFICATION
+# =======================
+
+SECRET_CODE = "WALLET"
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+
+    st.markdown("""
+    <style>
+    .login-card {
+        background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
+        padding: 28px 30px;
+        border-radius: 18px;
+        max-width: 420px;
+        margin: 3rem auto;
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0px 4px 18px rgba(0,0,0,0.45);
+        text-align: center;
+    }
+    .login-title { font-size: 28px; font-weight: 700; color: white; }
+    .login-subtitle { font-size: 14px; color: #d1d5db; margin-bottom: 18px; }
+    </style>
+
+    <div class="login-card">
+        <div class="login-title">Accès sécurisé</div>
+        <div class="login-subtitle">
+            Réservé aux membres de la <b>Team Élite</b><br>
+            Code disponible dans <b>DEFI Académie</b>
+        </div>
+        <a href="https://www.youtube.com/channel/UCZL_vS9bsLI4maA4Oja9zyg/join"
+           target="_blank"
+           style="background:#facc15;color:#111827;
+           padding:10px 18px;border-radius:14px;
+           font-weight:700;display:inline-block;">
+           Rejoindre la Team Élite
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.text_input("Code d'accès", key="secret_code", type="password")
+    if st.button("Valider", use_container_width=True):
+        if st.session_state.secret_code == SECRET_CODE:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Code incorrect")
+
+    st.stop()
+
+# =======================
+# DEFI STRATEGY ANALYZER
 # =======================
 
 STRATEGIES = {
     "SAFE": {
-        "description": "Préservation du capital, pas de levier",
-        "targets": {
-            "hodl": 0.45,
-            "lending": 0.45,
-            "liquidity_pool": 0.10,
-            "borrowing": 0.00
-        },
+        "description": "Préservation du capital",
+        "targets": {"hodl": 0.45, "lending": 0.45, "liquidity_pool": 0.10, "borrowing": 0.00},
         "threshold": 0.05
     },
     "MID": {
         "description": "Rendement équilibré, levier modéré",
-        "targets": {
-            "hodl": 0.20,
-            "lending": 0.45,
-            "liquidity_pool": 0.25,
-            "borrowing": 0.10
-        },
+        "targets": {"hodl": 0.20, "lending": 0.45, "liquidity_pool": 0.25, "borrowing": 0.10},
         "threshold": 0.05
     },
     "DEGEN": {
         "description": "Rendement agressif, levier élevé",
-        "targets": {
-            "hodl": 0.05,
-            "lending": 0.35,
-            "liquidity_pool": 0.40,
-            "borrowing": 0.20
-        },
+        "targets": {"hodl": 0.05, "lending": 0.35, "liquidity_pool": 0.40, "borrowing": 0.20},
         "threshold": 0.10
     }
 }
 
 ASSETS = ["hodl", "lending", "liquidity_pool", "borrowing"]
 
-# =======================
-# MOCK EVM
-# =======================
-
 def get_portfolio_from_evm(address):
     if not address or not address.startswith("0x"):
         return None
-
     seed = int(address[-4:], 16) % 100
-
     hodl = 2500 + seed * 10
     lending = 3500 + seed * 15
     lp = 2500 + seed * 10
     borrowing = 1000 + seed * 5
-
-    exposure = hodl + lending + lp
-
     return {
         "hodl": hodl,
         "lending": lending,
         "liquidity_pool": lp,
         "borrowing": borrowing,
-        "total_exposure": exposure
+        "total_exposure": hodl + lending + lp
     }
 
-# =======================
-# LOGIQUE
-# =======================
-
-def normalize(portfolio):
-    total = portfolio["total_exposure"]
-    return {
-        "hodl": portfolio["hodl"] / total,
-        "lending": portfolio["lending"] / total,
-        "liquidity_pool": portfolio["liquidity_pool"] / total,
-        "borrowing": portfolio["borrowing"] / total
-    }
+def normalize(p):
+    t = p["total_exposure"]
+    return {k: p[k] / t for k in ASSETS}
 
 def detect_actions(strategy, current):
     actions = []
     for asset in ASSETS:
-        target = strategy["targets"][asset]
-        actual = current.get(asset, 0)
-        delta = actual - target
-
+        delta = current[asset] - strategy["targets"][asset]
         if delta > strategy["threshold"]:
             actions.append(f"REDUIRE {asset.upper()} de {delta:.1%}")
         elif delta < -strategy["threshold"]:
             actions.append(f"AUGMENTER {asset.upper()} de {-delta:.1%}")
-
     return actions
-
-# =======================
-# UI
-# =======================
 
 left, right = st.columns([1, 2])
 
-# -----------------------
-# INPUTS
-# -----------------------
-
 with left:
     st.markdown('<div class="card">', unsafe_allow_html=True)
-
-    st.subheader("Adresse EVM")
-    address = st.text_input("Adresse", placeholder="0x...")
-
-    st.subheader("Stratégie")
-    strategy_choice = st.radio(
-        "Profil de risque",
-        ["SAFE", "MID", "DEGEN"],
-        horizontal=True
-    )
-
+    address = st.text_input("Adresse EVM", placeholder="0x...")
+    strategy_choice = st.radio("Profil de risque", list(STRATEGIES.keys()), horizontal=True)
     strategy = STRATEGIES[strategy_choice]
     st.info(strategy["description"])
-
     analyze = st.button("Analyser")
-
     st.markdown('</div>', unsafe_allow_html=True)
-
-# -----------------------
-# RESULTATS
-# -----------------------
 
 with right:
     if analyze:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-
-        portfolio = get_portfolio_from_evm(address)
-
-        if portfolio is None:
-            st.error("Adresse EVM invalide")
+        p = get_portfolio_from_evm(address)
+        if not p:
+            st.error("Adresse invalide")
             st.stop()
-
-        current = normalize(portfolio)
+        current = normalize(p)
         actions = detect_actions(strategy, current)
 
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("Répartition du portefeuille")
-
-        st.write(f"**Exposition totale :** ${portfolio['total_exposure']:,.0f}")
-        st.write(f"**Dette (Borrowing) :** ${portfolio['borrowing']:,.0f}")
-
+        st.write(f"Exposition totale : ${p['total_exposure']:,.0f}")
         st.table({
-            "Catégorie": ["HODL", "LENDING", "LIQUIDITY POOL", "BORROWING"],
-            "Actuel": [
-                f"{current['hodl']:.1%}",
-                f"{current['lending']:.1%}",
-                f"{current['liquidity_pool']:.1%}",
-                f"{current['borrowing']:.1%}",
-            ],
-            "Cible": [
-                f"{strategy['targets']['hodl']:.1%}",
-                f"{strategy['targets']['lending']:.1%}",
-                f"{strategy['targets']['liquidity_pool']:.1%}",
-                f"{strategy['targets']['borrowing']:.1%}",
-            ],
+            "Catégorie": ["HODL", "LENDING", "LP", "BORROWING"],
+            "Actuel": [f"{current[a]:.1%}" for a in ASSETS],
+            "Cible": [f"{strategy['targets'][a]:.1%}" for a in ASSETS],
         })
-
         st.subheader("Actions recommandées")
-
-        if not actions:
-            st.success("Portefeuille aligné avec la stratégie")
-        else:
+        if actions:
             for a in actions:
                 st.warning(a)
-
-        st.caption("Aucune transaction exécutée • Lecture seule")
-
+        else:
+            st.success("Portefeuille aligné avec la stratégie")
         st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="footer">© DeFi Analyzer • Backtest UI</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center;opacity:0.5;margin-top:30px;">© KBOUR Crypto • LP Backtest</div>', unsafe_allow_html=True)
