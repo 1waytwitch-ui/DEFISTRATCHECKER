@@ -1,23 +1,49 @@
 import streamlit as st
 
 # =======================
-# CONFIG UI (WIDESCREEN)
+# CONFIG UI
 # =======================
 
 st.set_page_config(
-    page_title="DeFi Strategy Checker",
+    page_title="DeFi Strategy Analyzer",
     layout="wide"
 )
 
 # =======================
-# STRATEGIE PAR DEFAUT
+# STRATEGIES PREDEFINIES
 # =======================
 
-DEFAULT_STRATEGY = {
-    "cash": 0.20,
-    "lending": 0.50,
-    "liquidity_pool": 0.30,
-    "rebalance_threshold": 0.05
+STRATEGIES = {
+    "SAFE": {
+        "description": "Préservation du capital, faible levier, faible volatilité",
+        "targets": {
+            "hodl": 0.45,
+            "lending": 0.45,
+            "liquidity_pool": 0.10,
+            "borrowing": 0.00
+        },
+        "rebalance_threshold": 0.05
+    },
+    "MID": {
+        "description": "Équilibre rendement / risque, levier modéré",
+        "targets": {
+            "hodl": 0.20,
+            "lending": 0.45,
+            "liquidity_pool": 0.25,
+            "borrowing": 0.10
+        },
+        "rebalance_threshold": 0.05
+    },
+    "DEGEN": {
+        "description": "Rendement maximal, levier élevé, forte volatilité",
+        "targets": {
+            "hodl": 0.05,
+            "lending": 0.35,
+            "liquidity_pool": 0.40,
+            "borrowing": 0.20
+        },
+        "rebalance_threshold": 0.10
+    }
 }
 
 # =======================
@@ -27,25 +53,26 @@ DEFAULT_STRATEGY = {
 def get_portfolio_from_evm(address: str):
     """
     Mock simple par adresse.
-    Remplaçable par DeBank / Zapper.
+    Les montants sont en USD.
     """
     if not address or not address.startswith("0x"):
         return None
 
-    # simulation différente selon l'adresse
     seed = int(address[-4:], 16) % 100
 
-    cash = 1000 + seed * 10
-    lending = 4000 + seed * 20
-    lp = 3000 + seed * 15
+    hodl = 2000 + seed * 10
+    lending = 3500 + seed * 20
+    lp = 2500 + seed * 15
+    borrowing = 1200 + seed * 5  # dette
 
-    total = cash + lending + lp
+    total_exposure = hodl + lending + lp
 
     return {
-        "cash": cash,
+        "hodl": hodl,
         "lending": lending,
         "liquidity_pool": lp,
-        "total_usd": total
+        "borrowing": borrowing,
+        "total_usd": total_exposure
     }
 
 # =======================
@@ -55,17 +82,18 @@ def get_portfolio_from_evm(address: str):
 def normalize_portfolio(portfolio):
     total = portfolio["total_usd"]
     return {
-        "cash": portfolio["cash"] / total,
+        "hodl": portfolio["hodl"] / total,
         "lending": portfolio["lending"] / total,
-        "liquidity_pool": portfolio["liquidity_pool"] / total
+        "liquidity_pool": portfolio["liquidity_pool"] / total,
+        "borrowing": portfolio["borrowing"] / total
     }
 
 def detect_actions(strategy, current):
     actions = []
     threshold = strategy["rebalance_threshold"]
+    targets = strategy["targets"]
 
-    for asset in ["cash", "lending", "liquidity_pool"]:
-        target = strategy[asset]
+    for asset, target in targets.items():
         actual = current.get(asset, 0)
         delta = actual - target
 
@@ -76,30 +104,12 @@ def detect_actions(strategy, current):
 
     return actions
 
-def aggregate_portfolios(portfolios):
-    aggregated = {
-        "cash": 0,
-        "lending": 0,
-        "liquidity_pool": 0,
-        "total_usd": 0
-    }
-
-    for p in portfolios:
-        for k in aggregated:
-            aggregated[k] += p[k]
-
-    return aggregated
-
 # =======================
 # UI
 # =======================
 
-st.title("DeFi Strategy Checker")
-st.caption("Lecture seule • Analyse stratégie vs portefeuilles EVM")
-
-# -----------------------
-# LAYOUT PRINCIPAL
-# -----------------------
+st.title("DeFi Strategy Analyzer")
+st.caption("Analyse lecture seule • Une adresse EVM • Stratégies prédéfinies")
 
 left, right = st.columns([1, 2])
 
@@ -108,47 +118,25 @@ left, right = st.columns([1, 2])
 # =======================
 
 with left:
-    st.subheader("1. Adresses EVM (Bundle)")
+    st.subheader("Adresse EVM")
 
-    addresses_raw = st.text_area(
-        "Une adresse par ligne",
-        height=160,
-        placeholder="0x...\n0x...\n0x..."
+    address = st.text_input(
+        "Colle une adresse EVM",
+        placeholder="0x..."
     )
 
-    addresses = [
-        a.strip() for a in addresses_raw.splitlines()
-        if a.strip()
-    ]
+    st.subheader("Profil de stratégie")
 
-    st.subheader("2. Stratégie cible")
-
-    cash_pct = st.slider("Cash / Stablecoins", 0.0, 1.0, DEFAULT_STRATEGY["cash"], 0.05)
-    lending_pct = st.slider("Lending", 0.0, 1.0, DEFAULT_STRATEGY["lending"], 0.05)
-    lp_pct = st.slider("Liquidity Pool", 0.0, 1.0, DEFAULT_STRATEGY["liquidity_pool"], 0.05)
-
-    threshold = st.slider(
-        "Seuil de rééquilibrage",
-        0.01,
-        0.20,
-        DEFAULT_STRATEGY["rebalance_threshold"],
-        0.01
+    strategy_name = st.selectbox(
+        "Choisis un profil",
+        ["SAFE", "MID", "DEGEN"]
     )
 
-    total_alloc = cash_pct + lending_pct + lp_pct
+    strategy = STRATEGIES[strategy_name]
 
-    if abs(total_alloc - 1.0) > 0.001:
-        st.error("La somme des allocations doit être égale à 100 %")
-        st.stop()
+    st.info(strategy["description"])
 
-    strategy = {
-        "cash": cash_pct,
-        "lending": lending_pct,
-        "liquidity_pool": lp_pct,
-        "rebalance_threshold": threshold
-    }
-
-    analyze = st.button("Analyser le bundle")
+    analyze = st.button("Analyser la stratégie")
 
 # =======================
 # COLONNE DROITE — RESULTATS
@@ -156,101 +144,50 @@ with left:
 
 with right:
     if analyze:
-        if not addresses:
-            st.error("Aucune adresse fournie")
+        portfolio = get_portfolio_from_evm(address)
+
+        if portfolio is None:
+            st.error("Adresse EVM invalide")
             st.stop()
 
-        # ---- Lecture par adresse ----
-        portfolios = []
-        per_address_results = []
+        current_pct = normalize_portfolio(portfolio)
+        actions = detect_actions(strategy, current_pct)
 
-        for addr in addresses:
-            p = get_portfolio_from_evm(addr)
-            if p is None:
-                continue
+        # -----------------------
+        # RESUME
+        # -----------------------
 
-            portfolios.append(p)
+        st.subheader("Résumé du portefeuille")
 
-            pct = normalize_portfolio(p)
-            actions = detect_actions(strategy, pct)
-
-            per_address_results.append({
-                "address": addr,
-                "portfolio": p,
-                "pct": pct,
-                "actions": actions
-            })
-
-        if not portfolios:
-            st.error("Aucune adresse valide")
-            st.stop()
-
-        # ---- Agrégation bundle ----
-        bundle = aggregate_portfolios(portfolios)
-        bundle_pct = normalize_portfolio(bundle)
-        bundle_actions = detect_actions(strategy, bundle_pct)
-
-        # =======================
-        # RESULTATS BUNDLE
-        # =======================
-
-        st.subheader("Résultat global (Bundle)")
-
-        st.write(f"Nombre d’adresses : {len(per_address_results)}")
-        st.write(f"Valeur totale : ${bundle['total_usd']:,.0f}")
+        st.write(f"Valeur totale (hors dette) : ${portfolio['total_usd']:,.0f}")
+        st.write(f"Dette (Borrowing) : ${portfolio['borrowing']:,.0f}")
 
         st.table({
-            "Actif": ["Cash", "Lending", "Liquidity Pool"],
+            "Position": ["HODL", "LENDING", "LIQUIDITY POOL", "BORROWING"],
             "Actuel": [
-                f"{bundle_pct['cash']:.1%}",
-                f"{bundle_pct['lending']:.1%}",
-                f"{bundle_pct['liquidity_pool']:.1%}",
+                f"{current_pct['hodl']:.1%}",
+                f"{current_pct['lending']:.1%}",
+                f"{current_pct['liquidity_pool']:.1%}",
+                f"{current_pct['borrowing']:.1%}",
             ],
             "Cible": [
-                f"{strategy['cash']:.1%}",
-                f"{strategy['lending']:.1%}",
-                f"{strategy['liquidity_pool']:.1%}",
+                f"{strategy['targets']['hodl']:.1%}",
+                f"{strategy['targets']['lending']:.1%}",
+                f"{strategy['targets']['liquidity_pool']:.1%}",
+                f"{strategy['targets']['borrowing']:.1%}",
             ],
         })
 
-        st.markdown("### Actions recommandées (Bundle)")
+        # -----------------------
+        # ACTIONS
+        # -----------------------
 
-        if not bundle_actions:
-            st.success("Le bundle est aligné avec la stratégie")
+        st.subheader("Actions recommandées")
+
+        if not actions:
+            st.success("Le portefeuille est aligné avec la stratégie")
         else:
-            for a in bundle_actions:
+            for a in actions:
                 st.warning(a)
 
-        st.divider()
-
-        # =======================
-        # RESULTATS PAR ADRESSE
-        # =======================
-
-        st.subheader("Actions par adresse")
-
-        for r in per_address_results:
-            with st.expander(r["address"]):
-                st.write(f"Valeur totale : ${r['portfolio']['total_usd']:,.0f}")
-
-                st.table({
-                    "Actif": ["Cash", "Lending", "Liquidity Pool"],
-                    "Actuel": [
-                        f"{r['pct']['cash']:.1%}",
-                        f"{r['pct']['lending']:.1%}",
-                        f"{r['pct']['liquidity_pool']:.1%}",
-                    ],
-                    "Cible": [
-                        f"{strategy['cash']:.1%}",
-                        f"{strategy['lending']:.1%}",
-                        f"{strategy['liquidity_pool']:.1%}",
-                    ],
-                })
-
-                if not r["actions"]:
-                    st.success("Adresse alignée avec la stratégie")
-                else:
-                    for act in r["actions"]:
-                        st.warning(act)
-
-        st.caption("Aucune transaction n’est exécutée • Lecture seule")
+        st.caption("Aucune transaction exécutée • Pas de gestion de wallet")
