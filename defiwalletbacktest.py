@@ -41,7 +41,6 @@ h1, h2, h3, h4 {
 }
 
 /* Buttons (CTA GOLD) */
-/* Buttons */
 .stButton button {
     background: linear-gradient(135deg, #facc15, #f59e0b) !important;
     color: #000000 !important;
@@ -63,7 +62,6 @@ h1, h2, h3, h4 {
 }
 
 /* Titles overlay like header */
-/* Titles overlay */
 .section-title {
     background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
     padding: 12px 18px;
@@ -74,7 +72,6 @@ h1, h2, h3, h4 {
     font-size: 20px;
 }
 
-/* Gauge */
 .gauge-container {
     width: 100%;
     height: 25px;
@@ -98,7 +95,6 @@ h1, h2, h3, h4 {
 
 # =======================
 # HEADER BANNER (avec boutons)
-# HEADER BANNER
 # =======================
 
 st.markdown("""
@@ -185,7 +181,6 @@ if st.session_state.show_disclaimer:
     de l’utilisateur, des conditions de marché en temps réel ou de paramètres
     externes, et <b>ne constituent en aucun cas un conseil financier ou une
     recommandation d’investissement</b>.
-    Analyse purement indicative – pas un conseil financier.
     </div>
     """, unsafe_allow_html=True)
 
@@ -254,15 +249,12 @@ ASSETS = ["BTC NATIF", "lending", "borrowing", "hodl", "liquidity_pool"]
 
 def normalize(portfolio):
     total = sum(portfolio[a] for a in ASSETS)
-    total = sum(portfolio.values())
     return {a: portfolio[a]/total if total > 0 else 0 for a in ASSETS}
 
 def detect_actions(composite_targets, current, threshold):
-def detect_actions(targets, current, threshold):
     actions = []
     for asset in ASSETS:
         delta = current[asset] - composite_targets[asset]
-        delta = current[asset] - targets[asset]
         if delta > threshold:
             actions.append(f"REDUIRE {asset.upper()} de {delta:.1%}")
         elif delta < -threshold:
@@ -317,7 +309,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 # =======================
 # UI PRINCIPAL
-# UI
 # =======================
 
 left, right = st.columns([1,2])
@@ -325,12 +316,11 @@ left, right = st.columns([1,2])
 with left:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Valeurs du wallet</div>', unsafe_allow_html=True)
-
     portfolio = {}
     for asset in ASSETS:
         portfolio[asset] = st.number_input(asset.upper(), min_value=0.0, value=0.0, step=100.0, format="%.2f")
-        portfolio[asset] = st.number_input(asset.upper(), min_value=0.0, value=0.0, step=100.0)
 
+    st.markdown('<div class="section-title">Répartition SAFE / MID / DEGEN</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Répartition SAFE / MID / DEGEN (cible)</div>', unsafe_allow_html=True)
     safe_pct = st.slider("SAFE", 0, 100, 40)
     mid_pct = st.slider("MID", 0, 100, 60)
@@ -353,21 +343,10 @@ with right:
         composite_targets = {}
         for asset in ASSETS:
             composite_targets[asset] = (
-        # CIBLE EXACTE
-        composite_targets = {
-            asset:
                 STRATEGIES["SAFE"]["targets"][asset]*safe_pct +
                 STRATEGIES["MID"]["targets"][asset]*mid_pct +
                 STRATEGIES["DEGEN"]["targets"][asset]*degen_pct
             )
-            for asset in ASSETS
-        }
-
-        threshold = (
-            STRATEGIES["SAFE"]["threshold"]*safe_pct +
-            STRATEGIES["MID"]["threshold"]*mid_pct +
-            STRATEGIES["DEGEN"]["threshold"]*degen_pct
-        )
 
         threshold = (STRATEGIES["SAFE"]["threshold"]*safe_pct +
                      STRATEGIES["MID"]["threshold"]*mid_pct +
@@ -378,10 +357,7 @@ with right:
 
         st.markdown('<div class="section-title">Répartition du portefeuille</div>', unsafe_allow_html=True)
         total_exposure = sum(portfolio[a] for a in ASSETS)
-
-        total_exposure = sum(portfolio.values())
         st.write(f"Exposition totale : ${total_exposure:,.2f}")
-        
         st.table({
             "Catégorie": [a.upper() for a in ASSETS],
             "Actuel": [f"{current[a]:.1%}" for a in ASSETS],
@@ -391,12 +367,13 @@ with right:
                 f"{STRATEGIES['DEGEN']['targets'][a]:.0%}"
                 for a in ASSETS
             ]
-            "Cible (selon répartition choisie)": [f"{composite_targets[a]:.1%}" for a in ASSETS]
         })
 
         # =======================
+        # Répartition du profil de risque avec jauge 3 segments
         # Répartition du profil de risque avec jauge calculée sur wallet actuel
         # =======================
+        st.markdown('<div class="section-title">Répartition du profil de risque</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-title">Répartition du profil de risque (actuel wallet)</div>', unsafe_allow_html=True)
         # Calcul SAFE/MID/DEGEN réels selon la composition cible
         safe_val = sum(current[a]*STRATEGIES["SAFE"]["targets"][a] for a in ASSETS)
@@ -409,6 +386,9 @@ with right:
 
         st.markdown(f"""
         <div class="gauge-container">
+            <div class="gauge-segment safe" style="width:{safe_pct*100}%"></div>
+            <div class="gauge-segment mid" style="width:{mid_pct*100}%"></div>
+            <div class="gauge-segment degen" style="width:{degen_pct*100}%"></div>
             <div class="gauge-segment safe" style="width:{safe_ratio*100}%"></div>
             <div class="gauge-segment mid" style="width:{mid_ratio*100}%"></div>
             <div class="gauge-segment degen" style="width:{degen_ratio*100}%"></div>
@@ -428,6 +408,5 @@ with right:
                 st.warning(a)
         else:
             st.success("Portefeuille aligné avec la stratégie et le profil de risque")
-            st.success("Portefeuille aligné avec la stratégie cible")
 
         st.markdown('</div>', unsafe_allow_html=True)
