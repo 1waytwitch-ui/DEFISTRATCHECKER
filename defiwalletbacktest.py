@@ -81,22 +81,53 @@ h1, h2, h3, h4 {
 """, unsafe_allow_html=True)
 
 # =======================
-# HEADER BANNER
+# HEADER BANNER (avec boutons)
 # =======================
 
 st.markdown("""
-<div style="
+<style>
+.deFi-banner {
     background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
     padding: 25px 30px;
     border-radius: 18px;
     display: flex;
-    justify-content: center;
-    color: white;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0px 4px 18px rgba(0,0,0,0.45);
+    margin-bottom: 25px;
+}
+
+.deFi-title-text {
     font-size: 36px;
     font-weight: 700;
-    margin-bottom: 25px;
-">
-DEFI WALLET BACKTEST
+    color: white !important;
+}
+
+.deFi-buttons a {
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 12px;
+    margin-left: 8px;
+}
+
+.krystal-btn { background-color: #06b6d4; }
+.plusvalue-btn { background-color: #10b981; }
+.telegram-btn { background-color: #6c5ce7; }
+.formation-btn { background-color: #f59e0b; }
+</style>
+
+<div class="deFi-banner">
+    <div class="deFi-title-text">DEFI WALLET BACKTEST</div>
+    <div class="deFi-buttons">
+        <a href="https://defi.krystal.app/referral?r=3JwR8YRQCRJT" target="_blank" class="krystal-btn">Krystal</a>
+        <a href="https://plusvalueimposable.streamlit.app/" target="_blank" class="plusvalue-btn">Plus-value</a>
+        <a href="https://t.me/Pigeonchanceux" target="_blank" class="telegram-btn">Telegram</a>
+        <a href="https://shorturl.at/X3sYt" target="_blank" class="formation-btn">Formation</a>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -132,8 +163,7 @@ if st.session_state.show_disclaimer:
 
     <b>Nature de l’analyse</b><br>
     L’analyse du wallet est <b>purement statistique et indicative</b>,
-    réalisée exclusivement en fonction du
-    <b>profil de risque sélectionné (SAFE / MID / DEGEN)</b>.
+    réalisée exclusivement en fonction de la répartition SAFE / MID / DEGEN.
     Les résultats affichés ne tiennent pas compte de la situation personnelle
     de l’utilisateur, des conditions de marché en temps réel ou de paramètres
     externes, et <b>ne constituent en aucun cas un conseil financier ou une
@@ -141,10 +171,9 @@ if st.session_state.show_disclaimer:
     </div>
     """, unsafe_allow_html=True)
 
-# =======================
-# AUTHENTIFICATION
-# =======================
-
+# -----------------------
+# CODE SECRET
+# -----------------------
 SECRET_CODE = "WALLET"
 
 if "authenticated" not in st.session_state:
@@ -152,8 +181,10 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state.authenticated:
 
+    # HTML + CSS overlay + bouton
     st.markdown("""
-    <div style="
+    <style>
+    .login-card {
         background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
         padding: 28px 30px;
         border-radius: 18px;
@@ -162,16 +193,43 @@ if not st.session_state.authenticated:
         border: 1px solid rgba(255,255,255,0.12);
         box-shadow: 0px 4px 18px rgba(0,0,0,0.45);
         text-align: center;
-        color: white;
+    }
+    .login-title { font-size: 28px; font-weight: 700; color: white !important; margin-bottom: 6px; }
+    .login-subtitle { font-size: 14px; color: #d1d5db; margin-bottom: 18px; }
+    .elite-btn {
+        display: inline-block;
+        background-color: #facc15;
+        color: #111827 !important;
+        font-size: 16px;
         font-weight: 700;
-        font-size: 28px;
-    ">
-    Accès sécurisé - Team Élite
+        text-decoration: none !important;
+        padding: 10px 18px;
+        border-radius: 14px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        margin-bottom: 18px;
+    }
+    .elite-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(250,204,21,0.4);
+    }
+    </style>
+
+    <div class="login-card">
+        <div class="login-title">Accès sécurisé</div>
+        <div class="login-subtitle">
+            Réservé aux membres de la <b>Team Élite KBOUR Crypto</b><br>
+            Code disponible dans <b>DEFI Académie</b>
+        </div>
+        <!-- BOUTON EXTERNE -->
+        <a href="https://www.youtube.com/channel/UCZL_vS9bsLI4maA4Oja9zyg/join" 
+           target="_blank" class="elite-btn">
+           Rejoindre la Team Élite
+        </a>
     </div>
     """, unsafe_allow_html=True)
 
+    # INPUT STREAMLIT séparé pour que ce soit cliquable
     st.text_input("Code d'accès", key="secret_code", type="password")
-
     if st.button("Valider", use_container_width=True):
         if st.session_state.secret_code == SECRET_CODE:
             st.session_state.authenticated = True
