@@ -346,9 +346,40 @@ with right:
 
         st.markdown('<div class="card">', unsafe_allow_html=True)
 
+        # ==== Répartition portefeuille + profil visuel ====
         st.markdown('<div class="section-title">Répartition du portefeuille</div>', unsafe_allow_html=True)
         total_exposure = sum(portfolio[a] for a in ASSETS)
-        st.write(f"Exposition totale : ${total_exposure:,.2f}")
+
+        # Jauge profil dominant
+        max_pct = max(safe_pct, mid_pct, degen_pct)
+        if max_pct == safe_pct:
+            profile_label = "SAFE"
+            profile_color = "#10b981"  # vert
+        elif max_pct == mid_pct:
+            profile_label = "MID"
+            profile_color = "#f59e0b"  # orange
+        else:
+            profile_label = "DEGEN"
+            profile_color = "#ef4444"  # rouge
+
+        col1, col2 = st.columns([2,1])
+        with col1:
+            st.write(f"Exposition totale : ${total_exposure:,.2f}")
+        with col2:
+            st.markdown(f"""
+                <div style="
+                    background-color:#e5e7eb;
+                    border-radius:12px;
+                    padding:5px;
+                    text-align:center;
+                    color:white;
+                    font-weight:700;
+                    background: linear-gradient(90deg, {profile_color} {max_pct*100}%, #e5e7eb {max_pct*100}%);
+                ">
+                    {profile_label} ({int(max_pct*100)}%)
+                </div>
+            """, unsafe_allow_html=True)
+
         st.table({
             "Catégorie": [a.upper() for a in ASSETS],
             "Actuel": [f"{current[a]:.1%}" for a in ASSETS],
