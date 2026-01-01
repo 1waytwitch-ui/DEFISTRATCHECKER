@@ -333,7 +333,7 @@ with right:
             "Cible": [f"{composite_targets[a]:.1%}" for a in ASSETS]
         })
 
-        st.markdown('<div class="section-title">Répartition par type d\'actif</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Répartition par stratégie</div>', unsafe_allow_html=True)
         for asset in ASSETS:
             st.progress(int(composite_targets[asset]*100), text=asset.upper())
 
