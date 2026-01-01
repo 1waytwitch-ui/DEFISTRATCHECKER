@@ -247,17 +247,17 @@ if not st.session_state.authenticated:
 STRATEGIES = {
     "SAFE": {
         "description": "Préservation du capital",
-        "targets": {"hodl": 0.15, "lending": 0.70, "liquidity_pool": 0.10, "borrowing": 0.05},
+        "targets": {"hodl": 0.10, "lending": 0.75, "liquidity_pool": 0.10, "borrowing": 0.05},
         "threshold": 0.05
     },
     "MID": {
         "description": "Rendement équilibré",
-        "targets": {"hodl": 0.10, "lending": 0.50, "liquidity_pool": 0.25, "borrowing": 0.15},
+        "targets": {"hodl": 0.05, "lending": 0.55, "liquidity_pool": 0.25, "borrowing": 0.15},
         "threshold": 0.05
     },
     "DEGEN": {
         "description": "Rendement agressif et risques très élevès",
-        "targets": {"hodl": 0.05, "lending": 0.25, "liquidity_pool": 0.50, "borrowing": 0.20},
+        "targets": {"hodl": 0.02, "lending": 0.28, "liquidity_pool": 0.50, "borrowing": 0.20},
         "threshold": 0.10
     }
 }
@@ -332,11 +332,6 @@ with right:
             "Actuel": [f"{current[a]:.1%}" for a in ASSETS],
             "Cible": [f"{composite_targets[a]:.1%}" for a in ASSETS]
         })
-
-        st.markdown('<div class="section-title">Répartition par stratégie</div>', unsafe_allow_html=True)
-        st.progress(int(safe_pct*100), text="SAFE")
-        st.progress(int(mid_pct*100), text="MID")
-        st.progress(int(degen_pct*100), text="DEGEN")
 
         st.markdown('<div class="section-title">Répartition par type d\'actif</div>', unsafe_allow_html=True)
         for asset in ASSETS:
