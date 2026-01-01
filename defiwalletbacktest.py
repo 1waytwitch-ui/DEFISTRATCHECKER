@@ -273,9 +273,6 @@ for item in checklist_items:
 score = sum(user_check)
 st.write(f"Score de sécurité : {score}/{len(checklist_items)}")
 
-# =======================
-# Profil visuel
-# =======================
 if score <= 4:
     prof_color = "red"
     prof_text = "Risque élevé"
@@ -289,9 +286,6 @@ else:
 st.markdown(f"<div style='font-weight:700; color:{prof_color}; font-size:20px'>Profil de sécurité : {prof_text}</div>", unsafe_allow_html=True)
 st.progress(int(score/len(checklist_items)*100))
 
-# =======================
-# Blocage / déblocage selon profil
-# =======================
 if prof_text == "Risque élevé":
     st.warning("⚠️ Votre profil est à risque élevé. Vous ne pouvez pas utiliser l'outil tant que la checklist n'est pas améliorée.")
     st.stop()
@@ -301,7 +295,7 @@ else:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # =======================
-# UI PRINCIPAL (après checklist validée)
+# UI PRINCIPAL
 # =======================
 
 left, right = st.columns([1,2])
@@ -313,15 +307,39 @@ with left:
     for asset in ASSETS:
         portfolio[asset] = st.number_input(asset.upper(), min_value=0.0, value=0.0, step=100.0, format="%.2f")
 
+    st.markdown('<div class="section-title">Répartition SAFE / MID / DEGEN</div>', unsafe_allow_html=True)
+    safe_pct = st.slider("SAFE", 0, 100, 40)
+    mid_pct = st.slider("MID", 0, 100, 60)
+    degen_pct = st.slider("DEGEN", 0, 100, 0)
+
+    total_pct = safe_pct + mid_pct + degen_pct
+    if total_pct > 0:
+        safe_pct /= total_pct
+        mid_pct /= total_pct
+        degen_pct /= total_pct
+
     analyze = st.button("Analyser")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
     if analyze:
-        # Calcul portefeuille normalisé
         current = normalize(portfolio)
 
-        # Calcul rapprochement avec stratégies pour profil SAFE/MID/DEGEN
+        # Calcul portefeuille par stratégie
+        composite_targets = {}
+        for asset in ASSETS:
+            composite_targets[asset] = (
+                STRATEGIES["SAFE"]["targets"][asset]*safe_pct +
+                STRATEGIES["MID"]["targets"][asset]*mid_pct +
+                STRATEGIES["DEGEN"]["targets"][asset]*degen_pct
+            )
+
+        threshold = (STRATEGIES["SAFE"]["threshold"]*safe_pct +
+                     STRATEGIES["MID"]["threshold"]*mid_pct +
+                     STRATEGIES["DEGEN"]["threshold"]*degen_pct)
+        actions = detect_actions(composite_targets, current, threshold)
+
+        # Calcul part de SAFE/MID/DEGEN réel selon wallet
         profile_scores = {}
         for key, strat in STRATEGIES.items():
             score = 0
@@ -329,16 +347,12 @@ with right:
                 score += min(current[asset], strat["targets"][asset])
             profile_scores[key] = score
 
-        dominant_profile = max(profile_scores, key=profile_scores.get)
-        profile_text_map = {"SAFE":"SAFE", "MID":"MID", "DEGEN":"DEGEN"}
-        profile_color_map = {"SAFE":"#10b981", "MID":"#f59e0b", "DEGEN":"#ef4444"}
-
         st.markdown('<div class="card">', unsafe_allow_html=True)
 
         st.markdown('<div class="section-title">Répartition du portefeuille</div>', unsafe_allow_html=True)
         total_exposure = sum(portfolio[a] for a in ASSETS)
+        dominant_profile = max(profile_scores, key=profile_scores.get)
         st.write(f"Exposition totale : ${total_exposure:,.2f} ({dominant_profile})")
-
         st.table({
             "Catégorie": [a.upper() for a in ASSETS],
             "Actuel": [f"{current[a]:.1%}" for a in ASSETS],
@@ -351,9 +365,19 @@ with right:
         })
 
         st.markdown('<div class="section-title">Répartition du profil de risque</div>', unsafe_allow_html=True)
-        st.write(f"Votre répartition actuelle correspond majoritairement au profil : **{dominant_profile}**")
+        st.progress(int(safe_pct*100), text="SAFE")
+        st.progress(int(mid_pct*100), text="MID")
+        st.progress(int(degen_pct*100), text="DEGEN")
+
+        st.markdown('<div class="section-title">Répartition par stratégie</div>', unsafe_allow_html=True)
+        for asset in ASSETS:
+            st.progress(int(composite_targets[asset]*100), text=asset.upper())
 
         st.markdown('<div class="section-title">Actions recommandées</div>', unsafe_allow_html=True)
-        st.success("Analyse basée sur votre saisie. Vérifiez l’alignement avec vos objectifs de risque.")
+        if actions:
+            for a in actions:
+                st.warning(a)
+        else:
+            st.success("Portefeuille aligné avec la stratégie et le profil de risque")
 
         st.markdown('</div>', unsafe_allow_html=True)
