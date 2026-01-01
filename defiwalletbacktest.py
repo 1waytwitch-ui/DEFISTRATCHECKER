@@ -166,21 +166,6 @@ if st.session_state.show_disclaimer:
     L’accès au backtest est exclusivement réservé aux membres de la Team Élite de la chaîne KBOUR Crypto.
     Le code d’accès est disponible dans le canal privé <b>« DEFI Académie »</b>.
     <br><br>
-
-    <b>🔐 Confidentialité & données</b><br>
-    Les valeurs du wallet saisies par l’utilisateur sont traitées et stockées
-    <b>uniquement en local dans le navigateur</b> pendant la session.
-    Aucune donnée personnelle, adresse de wallet ou information sensible
-    n’est enregistrée, transmise ou exploitée sur un serveur externe.
-    <br><br>
-
-    <b>Nature de l’analyse</b><br>
-    L’analyse du wallet est <b>purement statistique et indicative</b>,
-    réalisée exclusivement en fonction de la répartition SAFE / MID / DEGEN.
-    Les résultats affichés ne tiennent pas compte de la situation personnelle
-    de l’utilisateur, des conditions de marché en temps réel ou de paramètres
-    externes, et <b>ne constituent en aucun cas un conseil financier ou une
-    recommandation d’investissement</b>.
     </div>
     """, unsafe_allow_html=True)
 
@@ -194,33 +179,13 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, #0a0f1f 0%, #1e2761 40%, #4b1c7d 100%);
-        padding: 28px 30px;
-        border-radius: 18px;
-        max-width: 420px;
-        margin: 3rem auto;
-        border: 1px solid rgba(255,255,255,0.12);
-        box-shadow: 0px 4px 18px rgba(0,0,0,0.45);
-        text-align: center;
-        color: white;
-        font-weight: 700;
-        font-size: 28px;
-    ">
-    Accès sécurisé - Team Élite
-    </div>
-    """, unsafe_allow_html=True)
-
     st.text_input("Code d'accès", key="secret_code", type="password")
-
-    if st.button("Valider", use_container_width=True):
+    if st.button("Valider"):
         if st.session_state.secret_code == SECRET_CODE:
             st.session_state.authenticated = True
             st.rerun()
         else:
             st.error("Code incorrect")
-
     st.stop()
 
 # =======================
@@ -262,52 +227,6 @@ def detect_actions(composite_targets, current, threshold):
     return actions
 
 # =======================
-# CHECKLIST UTILISATEUR
-# =======================
-
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Checklist de sécurité avant utilisation</div>', unsafe_allow_html=True)
-
-checklist_items = [
-    "Wallet BITCOIN sur la blockchain et sécurisé par coldwallet",
-    "Wallet EVM sécurisé par coldwallet",
-    "Je sauvegarde mes clés privées et mes seedphrases de manière sécurisée",
-    "Utilisation DEFI et crypto sur PC dédié",
-    "Utilisation de protocoles reconnus",
-    "Utilisation de blockchain de layer 2 (base, arbitrum, etc.) pour limiter les frais",
-    "Propre recherche faite avant de me lancer et tests effectué avec des petits montants",
-    "Je maitrise les swaps et bridges"
-]
-
-user_check = []
-for item in checklist_items:
-    user_check.append(st.checkbox(item, key=item))
-
-score = sum(user_check)
-st.write(f"Score de sécurité : {score}/{len(checklist_items)}")
-
-if score <= 4:
-    prof_color = "red"
-    prof_text = "Risque élevé"
-elif score <= 6:
-    prof_color = "orange"
-    prof_text = "Risque moyen"
-else:
-    prof_color = "green"
-    prof_text = "Sécurisé"
-
-st.markdown(f"<div style='font-weight:700; color:{prof_color}; font-size:20px'>Profil de sécurité : {prof_text}</div>", unsafe_allow_html=True)
-st.progress(int(score/len(checklist_items)*100))
-
-if prof_text == "Risque élevé":
-    st.warning("⚠️ Votre profil est à risque élevé. Vous ne pouvez pas utiliser l'outil tant que la checklist n'est pas améliorée.")
-    st.stop()
-else:
-    st.success("✅ Profil suffisant, vous pouvez continuer l'analyse.")
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# =======================
 # UI PRINCIPAL
 # =======================
 
@@ -316,6 +235,7 @@ left, right = st.columns([1,2])
 with left:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Valeurs du wallet</div>', unsafe_allow_html=True)
+
     portfolio = {}
     for asset in ASSETS:
         portfolio[asset] = st.number_input(asset.upper(), min_value=0.0, value=0.0, step=100.0, format="%.2f")
@@ -338,69 +258,24 @@ with right:
     if analyze:
         current = normalize(portfolio)
 
-        # Calcul portefeuille par stratégie
-        composite_targets = {}
-        for asset in ASSETS:
-            composite_targets[asset] = (
-                STRATEGIES["SAFE"]["targets"][asset]*safe_pct +
-                STRATEGIES["MID"]["targets"][asset]*mid_pct +
-                STRATEGIES["DEGEN"]["targets"][asset]*degen_pct
-            )
-
-        threshold = (STRATEGIES["SAFE"]["threshold"]*safe_pct +
-                     STRATEGIES["MID"]["threshold"]*mid_pct +
-                     STRATEGIES["DEGEN"]["threshold"]*degen_pct)
-        actions = detect_actions(composite_targets, current, threshold)
+        composite_targets = {
+            a:
+            STRATEGIES["SAFE"]["targets"][a]*safe_pct +
+            STRATEGIES["MID"]["targets"][a]*mid_pct +
+            STRATEGIES["DEGEN"]["targets"][a]*degen_pct
+            for a in ASSETS
+        }
 
         st.markdown('<div class="card">', unsafe_allow_html=True)
-
         st.markdown('<div class="section-title">Répartition du portefeuille</div>', unsafe_allow_html=True)
+
         total_exposure = sum(portfolio[a] for a in ASSETS)
         st.write(f"Exposition totale : ${total_exposure:,.2f}")
+
         st.table({
             "Catégorie": [a.upper() for a in ASSETS],
             "Actuel": [f"{current[a]:.1%}" for a in ASSETS],
-            "Cible SAFE/MID/DEGEN": [
-                f"{STRATEGIES['SAFE']['targets'][a]:.0%} / "
-                f"{STRATEGIES['MID']['targets'][a]:.0%} / "
-                f"{STRATEGIES['DEGEN']['targets'][a]:.0%}"
-                for a in ASSETS
-            ]
+            "Cible (profil sélectionné)": [f"{composite_targets[a]:.1%}" for a in ASSETS]
         })
-
-        # =======================
-        # Répartition du profil de risque avec jauge calculée sur wallet actuel
-        # =======================
-        st.markdown('<div class="section-title">Répartition du profil de risque (actuel wallet)</div>', unsafe_allow_html=True)
-        # Calcul SAFE/MID/DEGEN réels selon la composition cible
-        safe_val = sum(current[a]*STRATEGIES["SAFE"]["targets"][a] for a in ASSETS)
-        mid_val = sum(current[a]*STRATEGIES["MID"]["targets"][a] for a in ASSETS)
-        degen_val = sum(current[a]*STRATEGIES["DEGEN"]["targets"][a] for a in ASSETS)
-        total_val = safe_val + mid_val + degen_val
-        safe_ratio = safe_val/total_val if total_val>0 else 0
-        mid_ratio = mid_val/total_val if total_val>0 else 0
-        degen_ratio = degen_val/total_val if total_val>0 else 0
-
-        st.markdown(f"""
-        <div class="gauge-container">
-            <div class="gauge-segment safe" style="width:{safe_ratio*100}%"></div>
-            <div class="gauge-segment mid" style="width:{mid_ratio*100}%"></div>
-            <div class="gauge-segment degen" style="width:{degen_ratio*100}%"></div>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-weight:700;">
-            <span>SAFE</span><span>MID</span><span>DEGEN</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown('<div class="section-title">Répartition par stratégie</div>', unsafe_allow_html=True)
-        for asset in ASSETS:
-            st.progress(int(composite_targets[asset]*100), text=asset.upper())
-
-        st.markdown('<div class="section-title">Actions recommandées</div>', unsafe_allow_html=True)
-        if actions:
-            for a in actions:
-                st.warning(a)
-        else:
-            st.success("Portefeuille aligné avec la stratégie et le profil de risque")
 
         st.markdown('</div>', unsafe_allow_html=True)
