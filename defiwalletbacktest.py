@@ -308,8 +308,8 @@ checklist_items = [
     "Utilisation DEFI et crypto sur PC dédié",
     "Utilisation de protocoles reconnus",
     "Utilisation de blockchain de layer 2 (base, arbitrum, etc.) pour limiter les frais",
-    "Propre recherche faite avant de me lancer et tests effectué avec des petits montants",
-    "Je maitrise les swaps et bridges"
+    "Propres recherches faites avant de me lancer et tests effectué avec des petits montants",
+    "Je maîtrise les swaps et bridges"
 ]
 
 user_check = []
