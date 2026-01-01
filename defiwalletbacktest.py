@@ -173,27 +173,19 @@ if st.session_state.show_disclaimer:
     <div style="
         background-color: #fff3cd;
         border-left: 6px solid #ffca2c;
-        padding: 15px 20px;
+        padding: 14px 18px;
         border-radius: 8px;
         color: #000;
         margin-bottom: 25px;
-        font-size: 15px;
+        font-size: 14.5px;
+        line-height: 1.35;
     ">
     <b>⚠️ DISCLAIMER IMPORTANT</b><br>
-    L’accès au backtest est réservé aux membres de la <b>Team Élite KBOUR Crypto</b>.
-    Le code d’accès est disponible dans le canal privé <b>« DEFI Académie »</b>.<br><br>
-
-    <b>🔐 Confidentialité & données</b><br>
-    Les valeurs du wallet sont traitées <b>uniquement en local dans le navigateur</b> durant la session.
-    Aucune donnée personnelle, adresse de wallet ou information sensible n’est enregistrée, transmise ou exploitée sur un serveur externe.<br><br>
-
-    <b>Nature de l’analyse</b><br>
-    L’analyse est <b>purement statistique et indicative</b>, basée uniquement sur la répartition SAFE / MID / DEGEN.
-    Les résultats ne tiennent pas compte de la situation personnelle, des conditions de marché en temps réel ou de paramètres externes
-    et <b>ne constituent en aucun cas un conseil financier ou une recommandation d’investissement</b>.
+    L’accès au backtest est réservé aux membres de la <b>Team Élite KBOUR Crypto</b>. Le code d’accès est disponible dans le canal privé <b>« DEFI Académie »</b>.<br>
+    <b>🔐 Confidentialité & données</b> — Les valeurs du wallet sont traitées <b>uniquement en local dans le navigateur</b> durant la session. Aucune donnée personnelle, adresse de wallet ou information sensible n’est enregistrée, transmise ou exploitée sur un serveur externe.<br>
+    <b>Nature de l’analyse</b> — L’analyse est <b>purement statistique et indicative</b>, basée uniquement sur la répartition SAFE / MID / DEGEN. Les résultats ne tiennent pas compte de la situation personnelle, des conditions de marché en temps réel ou de paramètres externes et <b>ne constituent en aucun cas un conseil financier ou une recommandation d’investissement</b>.
     </div>
     """, unsafe_allow_html=True)
-
 
 
 # -----------------------
