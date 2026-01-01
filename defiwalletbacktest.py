@@ -263,17 +263,35 @@ if not st.session_state.authenticated:
 STRATEGIES = {
     "SAFE": {
         "description": "Préservation du capital",
-        "targets": {"BTC NATIF": 0.50, "lending": 0.70, "borrowing": 0.05, "hodl": 0.15, "Pool de liquidité": 0.10},
+        "targets": {
+            "BTC NATIF": 0.40,
+            "lending": 0.30,
+            "borrowing": 0.05,
+            "hodl": 0.15,
+            "Pool de liquidité": 0.10
+        },
         "threshold": 0.05
     },
     "MID": {
         "description": "Rendement équilibré",
-        "targets": {"BTC NATIF": 0.30, "lending": 0.50, "borrowing": 0.15, "hodl": 0.10, "Pool de liquidité": 0.25},
+        "targets": {
+            "BTC NATIF": 0.25,
+            "lending": 0.30,
+            "borrowing": 0.15,
+            "hodl": 0.10,
+            "Pool de liquidité": 0.20
+        },
         "threshold": 0.05
     },
     "DEGEN": {
         "description": "Rendement agressif et risques très élevés",
-        "targets": {"BTC NATIF": 0.10, "lending": 0.25, "borrowing": 0.20, "hodl": 0.05, "Pool de liquidité": 0.50},
+        "targets": {
+            "BTC NATIF": 0.10,
+            "lending": 0.15,
+            "borrowing": 0.25,
+            "hodl": 0.05,
+            "Pool de liquidité": 0.45
+        },
         "threshold": 0.10
     }
 }
