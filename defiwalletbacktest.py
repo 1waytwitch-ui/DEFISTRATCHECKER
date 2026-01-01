@@ -217,22 +217,22 @@ if not st.session_state.authenticated:
 STRATEGIES = {
     "SAFE": {
         "description": "Préservation du capital",
-        "targets": {"BTC": 0.50, "lending": 0.70, "borrowing": 0.05, "hodl": 0.15, "liquidity_pool": 0.10},
+        "targets": {"BTC NATIF": 0.50, "lending": 0.70, "borrowing": 0.05, "hodl": 0.15, "liquidity_pool": 0.10},
         "threshold": 0.05
     },
     "MID": {
         "description": "Rendement équilibré",
-        "targets": {"BTC": 0.30, "lending": 0.50, "borrowing": 0.15, "hodl": 0.10, "liquidity_pool": 0.25},
+        "targets": {"BTC NATIF": 0.30, "lending": 0.50, "borrowing": 0.15, "hodl": 0.10, "liquidity_pool": 0.25},
         "threshold": 0.05
     },
     "DEGEN": {
         "description": "Rendement agressif et risques très élevés",
-        "targets": {"BTC": 0.10, "lending": 0.25, "borrowing": 0.20, "hodl": 0.05, "liquidity_pool": 0.50},
+        "targets": {"BTC NATIF": 0.10, "lending": 0.25, "borrowing": 0.20, "hodl": 0.05, "liquidity_pool": 0.50},
         "threshold": 0.10
     }
 }
 
-ASSETS = ["BTC", "lending", "borrowing", "hodl", "liquidity_pool"]
+ASSETS = ["BTC NATIF", "lending", "borrowing", "hodl", "liquidity_pool"]
 
 def normalize(portfolio):
     total = sum(portfolio[a] for a in ASSETS)
@@ -359,7 +359,7 @@ with right:
         st.progress(int(safe_pct*100), text="SAFE")
         st.progress(int(mid_pct*100), text="MID")
         st.progress(int(degen_pct*100), text="DEGEN")
-        st.write("Incluant BTC natif comme actif principal à accumuler")
+        st.write("Incluant du BTC natif comme actif principal à accumuler")
 
         st.markdown('<div class="section-title">Répartition par stratégie</div>', unsafe_allow_html=True)
         for asset in ASSETS:
