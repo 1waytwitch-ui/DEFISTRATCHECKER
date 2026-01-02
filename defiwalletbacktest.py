@@ -456,8 +456,3 @@ with right:
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-
-- Les fees sont historiques et peuvent ne pas se répéter
-- Seule l'active liquidity (in-range) est prise en compte
-- Cette métrique sert à comparer des pools, pas à prédire un rendement
-""")
